@@ -20,7 +20,7 @@ function startBot() {
       port: PORT_MC,
       username: USERNAME,
       offline: true,
-      version: '1.26.33' // Minecraft Bedrock versiyangiz
+      version: '1.26.30' // <-- 1.26.33 o'rniga mos keladigan eng yaqin qo'llab-quvvatlanadigan versiya qo'yildi
     });
   } catch (err) {
     console.log('[!] Ulanishda xatolik:', err.message);
