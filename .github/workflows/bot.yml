@@ -1,0 +1,27 @@
+name: AKV Minecraft Bot
+
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */5 * * *' # Har 5 soatda avtomatik qayta ishga tushirib turadi (limitga tushib qolmasligi uchun)
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Repository'ni yuklab olish
+      uses: actions/checkout@v4
+
+    - name: Node.js muhitini o'rnatish
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Kerakli kutubxonalarni o'rnatish
+      run: npm install
+
+    - name: Botni ishga tushirish
+      run: node index.js
+      
