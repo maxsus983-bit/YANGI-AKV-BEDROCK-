@@ -1,29 +1,38 @@
 const bedrock = require('bedrock-protocol');
-const express = require('express');
-
-// Render o'chib qolmasligi uchun HTTP server
-const app = express();
-const PORT = process.env.PORT || 3000;
-app.get('/', (req, res) => res.send('AKV Bot ishlamoqda!'));
-app.listen(PORT, () => console.log(`Web server ${PORT}-portda ishda.`));
 
 const HOST = 'Soloraft.aternos.me';
 const PORT_MC = 27295;
 const USERNAME = 'AKV_Bot';
 
+const CHECK_INTERVAL = 15000;
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function startBot() {
-  console.log(`[*] Serverga ulanishga harakat qilinmoqda...`);
-  
-  const client = bedrock.createClient({
-    host: HOST,
-    port: PORT_MC,
-    username: USERNAME,
-    offline: true,
-    version: false
-  });
+  console.log(`[*] ${HOST}:${PORT_MC} manziliga ulanishga harakat qilinmoqda...`);
+
+  let client;
+  try {
+    client = bedrock.createClient({
+      host: HOST,
+      port: PORT_MC,
+      username: USERNAME,
+      offline: true,
+      version: '1.26.33' // Minecraft Bedrock versiyangiz
+    });
+  } catch (err) {
+    console.log('[!] Ulanishda xatolik:', err.message);
+    retryConnection();
+    return;
+  }
+
+  let isConnected = false;
 
   client.on('spawn', () => {
-    console.log('[+] Bot serverga muvaffaqiyatli kirdi!');
+    isConnected = true;
+    console.log('[+] Bot serverga muvaffaqiyatli kirdi va AFK rejimida ishlamoqda!');
   });
 
   client.on('error', (err) => {
@@ -31,9 +40,19 @@ function startBot() {
   });
 
   client.on('close', () => {
-    console.log('[-] Ulanish uzildi. 15 sekunddan so\'ng qayta ulanamiz...');
-    setTimeout(startBot, 15000);
+    if (isConnected) {
+      console.log('[-] Server yopildi yoki bot chiqarib yuborildi.');
+    } else {
+      console.log('[-] Server hozircha o‘chiq yoki ulanib bo‘lmadi.');
+    }
+    retryConnection();
   });
+}
+
+async function retryConnection() {
+  console.log(`[i] Server qayta yonguncha kutilyapti...`);
+  await wait(CHECK_INTERVAL);
+  startBot();
 }
 
 startBot();
