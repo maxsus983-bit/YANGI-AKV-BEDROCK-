@@ -4,7 +4,7 @@ const HOST = 'Soloraft.aternos.me';
 const PORT_MC = 27295;
 const USERNAME = 'AKV_Bot';
 
-const CHECK_INTERVAL = 15000; // Server o'chiq bo'lsa, har 15 sekundda tekshiradi
+const CHECK_INTERVAL = 15000;
 
 function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -20,7 +20,7 @@ function startBot() {
       port: PORT_MC,
       username: USERNAME,
       offline: true,
-      version: '1.20.0',
+      version: false, // <-- Versiyani avtomatik aniqlashi uchun 'false' qilindi
     });
   } catch (err) {
     console.log('[!] Ulanishda xatolik:', err.message);
@@ -43,7 +43,7 @@ function startBot() {
     if (isConnected) {
       console.log('[-] Server yopildi yoki bot chiqarib yuborildi.');
     } else {
-      console.log('[-] Server hozircha o‘chiq.');
+      console.log('[-] Server bilan ulanish uzildi.');
     }
     retryConnection();
   });
