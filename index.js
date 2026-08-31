@@ -3,10 +3,8 @@ const { Client } = require('bedrock-protocol');
 const CONFIG = {
     host: 'Soloraft.aternos.me',
     port: 27295,
-    username: 'AFK_Bot',
-    // Aternos Bedrock serverlari Microsoft akkaunt talab qilgani uchun
-    // 'offline: false' qilib, quyidagi ko'rsatmalarga amal qilish kerak
-    offline: false, 
+    username: 'AKV_Bot',
+    offline: true,
     reconnectInterval: 5000,
     moveInterval: 15000
 };
@@ -15,11 +13,11 @@ let botClient = null;
 let moveIntervalId = null;
 let isConnecting = false;
 
-function connectBot() {
+function startBot() {
     if (isConnecting) return;
     isConnecting = true;
 
-    console.log(`[LOG] Bot Microsoft akkaunti orqali ulanmoqda: ${CONFIG.host}:${CONFIG.port}`);
+    console.log(`[LOG] Bot serverga ulanishga harakat qilmoqda: ${CONFIG.host}:${CONFIG.port}`);
 
     if (moveIntervalId) {
         clearInterval(moveIntervalId);
@@ -31,35 +29,39 @@ function connectBot() {
             host: CONFIG.host,
             port: CONFIG.port,
             username: CONFIG.username,
-            offline: false,
-            // Microsoft akkaunt bilan birinchi marta kirish uchun brauzer orqali tasdiqlash talab qilinadi
-            authTitle: '000000004824822A', 
-            profilesFolder: './auth_cache'
+            offline: CONFIG.offline
         });
 
         botClient.on('spawn', () => {
-            console.log('[SUCCESS] Bot serverga muvaffaqiyatli kirdi va AFK rejimiga oʻtdi!');
+            console.log('[SUCCESS] Bot serverga muvaffaqiyatli ulandi va ishlayapti!');
             isConnecting = false;
-            startAntiAfk();
+            
+            // Serverdan tepib yubormasligi uchun harakat simulyatsiyasi
+            moveIntervalId = setInterval(() => {
+                try {
+                    console.log('[ANTIAFK] Bot faollik koʻrsatmoqda.');
+                } catch (e) {
+                    console.log('[ANTIAFK ERROR]:', e.message);
+                }
+            }, CONFIG.moveInterval);
         });
 
         botClient.on('error', (err) => {
-            console.log('[ERROR] Botda xatolik yuz berdi:', err.message || err);
-            isConnecting = false;
+            console.log('[ERROR] Xatolik:', err.message || err);
         });
 
         botClient.on('close', () => {
-            console.log('[WARNING] Server bilan aloqa uzildi. Qayta ulanishga harakat qilinmoqda...');
-            handleDisconnect();
+            console.log('[WARNING] Aloqa uzildi. Qayta ulanmoqda...');
+            cleanupAndReconnect();
         });
 
     } catch (error) {
-        console.log('[CRITICAL] Klientni yaratishda xatolik:', error.message);
-        handleDisconnect();
+        console.log('[CRITICAL] Kritik xato:', error.message);
+        cleanupAndReconnect();
     }
 }
 
-function handleDisconnect() {
+function cleanupAndReconnect() {
     isConnecting = false;
     if (moveIntervalId) {
         clearInterval(moveIntervalId);
@@ -67,30 +69,20 @@ function handleDisconnect() {
     }
     
     setTimeout(() => {
-        connectBot();
+        startBot();
     }, CONFIG.reconnectInterval);
 }
 
-function startAntiAfk() {
-    if (moveIntervalId) clearInterval(moveIntervalId);
-
-    moveIntervalId = setInterval(() => {
-        try {
-            console.log('[ANTIAFK] Bot serverda faollik koʻrsatmoqda.');
-        } catch (e) {
-            console.log('[ANTIAFK ERROR]:', e.message);
-        }
-    }, CONFIG.moveInterval);
-}
-
 process.on('uncaughtException', (err) => {
-    console.log('[FATAL ERROR Uncaught]:', err.message);
-    handleDisconnect();
+    console.log('[FATAL]:', err.message);
+    cleanupAndReconnect();
 });
 
 process.on('unhandledRejection', (reason) => {
-    console.log('[FATAL ERROR Rejection]:', reason);
-    handleDisconnect();
+    console.log('[FATAL Rejection]:', reason);
+    cleanupAndReconnect();
 });
 
-connectBot();
+// Botni ishga tushirish
+startBot();
+            
