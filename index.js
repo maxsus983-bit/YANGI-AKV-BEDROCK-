@@ -5,7 +5,6 @@ const CONFIG = {
     port: 27295,
     username: 'AFK_Bot',
     offline: true,
-    version: '1.26.30', // Server versiyasi (kerak bo'lsa 1.26.33.2 ga o'zgartirishingiz mumkin)
     reconnectInterval: 5000,
     moveInterval: 15000
 };
@@ -18,7 +17,7 @@ function createBot() {
     if (isConnecting) return;
     isConnecting = true;
 
-    console.log(`[LOG] Bot ${CONFIG.host}:${CONFIG.port} manziliga (${CONFIG.version}) ulanmoqda...`);
+    console.log(`[LOG] Bot ${CONFIG.host}:${CONFIG.port} manziliga ulanmoqda...`);
 
     if (moveIntervalId) {
         clearInterval(moveIntervalId);
@@ -30,8 +29,8 @@ function createBot() {
             host: CONFIG.host,
             port: CONFIG.port,
             username: CONFIG.username,
-            offline: CONFIG.offline,
-            version: CONFIG.version
+            offline: CONFIG.offline
+            // Versiyani o'chirdik, shunda kutubxona server bilan o'zi avtomatik moslashadi
         });
 
         botClient.on('spawn', () => {
@@ -93,4 +92,3 @@ process.on('unhandledRejection', (reason) => {
 });
 
 createBot();
-    
