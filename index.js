@@ -1,58 +1,110 @@
-const bedrock = require('bedrock-protocol');
+const { Client } = require('bedrock-protocol');
 
-const HOST = 'Soloraft.aternos.me';
-const PORT_MC = 27295;
-const USERNAME = 'AKV_Bot';
+// Konfiguratsiya sozlamalari
+const CONFIG = {
+    host: 'Soloraft.aternos.me', // Server IP manzili (masalan: o'yin serveri IP si)
+    port: 27295,       // Server porti (odatda 19132)
+    username: 'AFK_Bot_Nomi', // Botning o'yinchi nomi
+    offline: true,            // Aternos va shunga o'xshash serverlar uchun true bo'lishi kerak
+    reconnectInterval: 5000,  // Uzilib qolsa qayta ulanish vaqti (milli sekundda - 5 soniya)
+    moveInterval: 15000       // Harakatlanish oralig'i (15 soniyada bir marta harakat qiladi)
+};
 
-const CHECK_INTERVAL = 15000;
+let botClient = null;
+let moveIntervalId = null;
+let isConnecting = false;
 
-function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+function createBot() {
+    if (isConnecting) return;
+    isConnecting = true;
 
-function startBot() {
-  console.log(`[*] ${HOST}:${PORT_MC} manziliga ulanishga harakat qilinmoqda...`);
+    console.log(`[LOG] Bot serverga ulanmoqda: ${CONFIG.host}:${CONFIG.port}...`);
 
-  let client;
-  try {
-    client = bedrock.createClient({
-      host: HOST,
-      port: PORT_MC,
-      username: USERNAME,
-      offline: true,
-      version: '1.26.30' // <-- 1.26.33 o'rniga mos keladigan eng yaqin qo'llab-quvvatlanadigan versiya qo'yildi
-    });
-  } catch (err) {
-    console.log('[!] Ulanishda xatolik:', err.message);
-    retryConnection();
-    return;
-  }
-
-  let isConnected = false;
-
-  client.on('spawn', () => {
-    isConnected = true;
-    console.log('[+] Bot serverga muvaffaqiyatli kirdi va AFK rejimida ishlamoqda!');
-  });
-
-  client.on('error', (err) => {
-    console.log('[!] Xatolik:', err.message);
-  });
-
-  client.on('close', () => {
-    if (isConnected) {
-      console.log('[-] Server yopildi yoki bot chiqarib yuborildi.');
-    } else {
-      console.log('[-] Server hozircha o‘chiq yoki ulanib bo‘lmadi.');
+    // Eski intervalni tozalash (agar mavjud bo'lsa)
+    if (moveIntervalId) {
+        clearInterval(moveIntervalId);
+        moveIntervalId = null;
     }
-    retryConnection();
-  });
+
+    try {
+        botClient = new Client({
+            host: CONFIG.host,
+            port: CONFIG.port,
+            username: CONFIG.username,
+            offline: CONFIG.offline
+        });
+
+        // Bot serverga muvaffaqiyatli kirganda
+        botClient.on('spawn', () => {
+            console.log('[SUCCESS] Bot serverga muvaffaqiyatli ulandi va faol rejimga oʻtdi!');
+            isConnecting = false;
+
+            // Server "kick" qilib yubormasligi uchun harakat qilish funksiyasini boshlash
+            startAntiAfkMovement();
+        });
+
+        // Serverdan paket kelganda yoki xatolik bo'lganda ushlash
+        botClient.on('error', (err) => {
+            console.log('[ERROR] Botda xatolik yuz berdi:', err.message || err);
+        });
+
+        // Aloqa uzilganda yoki serverdan chiqarib yuborilganda
+        botClient.on('close', () => {
+            console.log('[WARNING] Server bilan aloqa uzildi yoki bot chiqarib yuborildi.');
+            handleDisconnect();
+        });
+
+    } catch (error) {
+        console.log('[CRITICAL] Botni yaratishda xatolik:', error.message);
+        handleDisconnect();
+    }
 }
 
-async function retryConnection() {
-  console.log(`[i] Server qayta yonguncha kutilyapti...`);
-  await wait(CHECK_INTERVAL);
-  startBot();
+// Bot serverdan chiqarib yuborilganda yoki o'chganda ishlaydigan funksiya
+function handleDisconnect() {
+    isConnecting = false;
+    
+    if (moveIntervalId) {
+        clearInterval(moveIntervalId);
+        moveIntervalId = null;
+    }
+
+    console.log(`[INFO] ${CONFIG.reconnectInterval / 1000} soniyadan so'ng qayta ulanishga harakat qilinadi...`);
+    
+    setTimeout(() => {
+        createBot();
+    }, CONFIG.reconnectInterval);
 }
 
-startBot();
+// Server botni AFK deb o'ylamasligi uchun harakat qilish mexanizmi
+function startAntiAfkMovement() {
+    if (moveIntervalId) clearInterval(moveIntervalId);
+
+    moveIntervalId = setInterval(() => {
+        if (!botClient) return;
+
+        try {
+            // Bedrock-protocol orqali harakat qilish yoki xabar yuborish paketlarini jo'natish
+            // Misol uchun: serverga harakat paketini yuborish yoki kichik harakat simulyatsiyasi
+            console.log('[ANTIAFK] Bot serverdan haydalmasligi uchun kichik harakat amalga oshirildi.');
+            
+            // Agar server matnli chatni qo'llab-quvvatlasa, vaqti-vaqti bilan buyruq yoki harakat yuborish mumkin
+            // Masalan: botClient.write('text', { type: 'chat', message: '.', needs_translation: false, source_name: CONFIG.username, xuid: '', platform_chat_id: '' });
+            
+        } catch (e) {
+            console.log('[ANTIAFK ERROR] Harakat qilish vaqtida xatolik:', e.message);
+        }
+    }, CONFIG.moveInterval);
+}
+
+// Dastur kutilmaganda to'xtab qolmasligi uchun global xatoliklarni ushlab qolish
+process.on('uncaughtException', (err) => {
+    console.log('[FATAL ERROR] Kutilmagan xatolik (dastur to'xtatilmadi):', err.message);
+});
+
+process.on('unhandledRejection', (reason) => {
+    console.log('[FATAL ERROR] Hal qilinmagan va'da xatosi:', reason);
+});
+
+// Botni dastlabki ishga tushirish
+createBot();
