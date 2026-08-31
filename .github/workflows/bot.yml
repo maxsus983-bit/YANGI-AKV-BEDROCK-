@@ -1,27 +1,52 @@
-name: AKV Minecraft Bot
+name: AKV Bedrock Bot
 
 on:
-  push:
   workflow_dispatch:
-  schedule:
-    - cron: '0 */5 * * *' # Har 5 soatda avtomatik qayta ishga tushirib turadi (limitga tushib qolmasligi uchun)
+  push:
+    branches:
+      - main
 
 jobs:
-  build:
+  run-bot:
     runs-on: ubuntu-latest
 
+    timeout-minutes: 350
+
     steps:
-    - name: Repository'ni yuklab olish
-      uses: actions/checkout@v4
+      - name: Repository yuklash
+        uses: actions/checkout@v4
 
-    - name: Node.js muhitini o'rnatish
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
+      - name: Node.js o'rnatish
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
 
-    - name: Kerakli kutubxonalarni o'rnatish
-      run: npm install
+      - name: Dependency o'rnatish
+        run: npm install
 
-    - name: Botni ishga tushirish
-      run: node index.js
-      
+      - name: AKV Bot ishga tushirish
+        run: |
+          echo "=============================================="
+          echo "          AKV BEDROCK BOT"
+          echo "=============================================="
+          echo "Bot ishga tushmoqda..."
+          echo "Server: Soloraft.aternos.me:27295"
+          echo "=============================================="
+
+          while true
+          do
+            echo ""
+            echo "[GitHub] Node.js bot ishga tushirilmoqda..."
+
+            node index.js
+
+            EXIT_CODE=$?
+
+            echo ""
+            echo "[GitHub] Bot processi to'xtadi."
+            echo "[GitHub] Exit code: $EXIT_CODE"
+            echo "[GitHub] 5 soniyadan keyin qayta ishga tushiriladi..."
+
+            sleep 5
+          done
