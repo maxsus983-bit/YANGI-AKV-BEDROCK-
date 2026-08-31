@@ -7,46 +7,102 @@ on:
       - main
 
 jobs:
-  run-bot:
+  runner-bot:
+    name: AKV Bedrock Bot Runner
     runs-on: ubuntu-latest
 
     timeout-minutes: 350
 
     steps:
+
+      # ======================================================
+      # 1. GitHub repository yuklanadi
+      # ======================================================
+
       - name: Repository yuklash
         uses: actions/checkout@v4
+
+
+      # ======================================================
+      # 2. Node.js 22 o'rnatiladi
+      # ======================================================
 
       - name: Node.js o'rnatish
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 22
+
+
+      # ======================================================
+      # 3. NPM dependency'larni o'rnatish
+      # ======================================================
 
       - name: Dependency o'rnatish
-        run: npm install
+        run: |
+          echo "=============================================="
+          echo "      NPM DEPENDENCY O'RNATILMOQDA"
+          echo "=============================================="
+
+          npm install
+
+          echo ""
+          echo "Dependency o'rnatish tugadi."
+
+
+      # ======================================================
+      # 4. Botni ishga tushirish
+      #
+      # Agar index.js crash bo'lsa:
+      #
+      # index.js
+      #    ↓
+      # process to'xtaydi
+      #    ↓
+      # 5 soniya
+      #    ↓
+      # index.js qayta ishga tushadi
+      #
+      # ======================================================
 
       - name: AKV Bot ishga tushirish
         run: |
+
+          echo ""
           echo "=============================================="
-          echo "          AKV BEDROCK BOT"
+          echo "             AKV BEDROCK BOT"
           echo "=============================================="
-          echo "Bot ishga tushmoqda..."
-          echo "Server: Soloraft.aternos.me:27295"
+          echo ""
+          echo "Server : Soloraft.aternos.me:27295"
+          echo "Bot    : AKV_Bot"
+          echo ""
+          echo "GitHub Runner ishga tushdi."
+          echo "Bot start qilinmoqda..."
+          echo ""
           echo "=============================================="
+          echo ""
 
           while true
           do
+
             echo ""
-            echo "[GitHub] Node.js bot ishga tushirilmoqda..."
+            echo "----------------------------------------------"
+            echo "[GITHUB] $(date)"
+            echo "[GITHUB] AKV Bot ishga tushirilmoqda..."
+            echo "----------------------------------------------"
+            echo ""
 
             node index.js
 
             EXIT_CODE=$?
 
             echo ""
-            echo "[GitHub] Bot processi to'xtadi."
-            echo "[GitHub] Exit code: $EXIT_CODE"
-            echo "[GitHub] 5 soniyadan keyin qayta ishga tushiriladi..."
+            echo "=============================================="
+            echo "[GITHUB] AKV Bot processi to'xtadi!"
+            echo "[GITHUB] Exit code: $EXIT_CODE"
+            echo "[GITHUB] 5 soniyadan keyin qayta ishga tushadi."
+            echo "=============================================="
+            echo ""
 
             sleep 5
+
           done
