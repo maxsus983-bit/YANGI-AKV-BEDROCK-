@@ -1,7 +1,7 @@
 const { Client, ping } = require('bedrock-protocol');
 
 const CONFIG = {
-    host: 'soloraft.aternos.me',
+    host: 'Soloraft.aternos.me',
     port: 27295,
     username: 'AFK_Bot',
     offline: true,
