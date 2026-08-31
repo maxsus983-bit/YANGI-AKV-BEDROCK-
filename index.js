@@ -4,7 +4,9 @@ const CONFIG = {
     host: 'Soloraft.aternos.me',
     port: 27295,
     username: 'AFK_Bot',
-    offline: true,
+    // Aternos Bedrock serverlari Microsoft akkaunt talab qilgani uchun
+    // 'offline: false' qilib, quyidagi ko'rsatmalarga amal qilish kerak
+    offline: false, 
     reconnectInterval: 5000,
     moveInterval: 15000
 };
@@ -17,7 +19,7 @@ function connectBot() {
     if (isConnecting) return;
     isConnecting = true;
 
-    console.log(`[LOG] Bot serverga ulanishga harakat qilmoqda: ${CONFIG.host}:${CONFIG.port}`);
+    console.log(`[LOG] Bot Microsoft akkaunti orqali ulanmoqda: ${CONFIG.host}:${CONFIG.port}`);
 
     if (moveIntervalId) {
         clearInterval(moveIntervalId);
@@ -29,7 +31,10 @@ function connectBot() {
             host: CONFIG.host,
             port: CONFIG.port,
             username: CONFIG.username,
-            offline: CONFIG.offline
+            offline: false,
+            // Microsoft akkaunt bilan birinchi marta kirish uchun brauzer orqali tasdiqlash talab qilinadi
+            authTitle: '000000004824822A', 
+            profilesFolder: './auth_cache'
         });
 
         botClient.on('spawn', () => {
@@ -78,7 +83,6 @@ function startAntiAfk() {
     }, CONFIG.moveInterval);
 }
 
-// Kutilmagan crash larning oldini olish
 process.on('uncaughtException', (err) => {
     console.log('[FATAL ERROR Uncaught]:', err.message);
     handleDisconnect();
@@ -89,5 +93,4 @@ process.on('unhandledRejection', (reason) => {
     handleDisconnect();
 });
 
-// Ishga tushirish
 connectBot();
