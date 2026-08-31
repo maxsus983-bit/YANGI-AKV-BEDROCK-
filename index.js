@@ -1,13 +1,13 @@
 const { Client } = require('bedrock-protocol');
 
-// Konfiguratsiya sozlamalari
 const CONFIG = {
-    host: 'Soloraft.aternos.me', // Server manzili
-    port: 27295,                // Server porti
-    username: 'AFK_Bot',        // Botning o'yinchi nomi
-    offline: true,              // Aternos va boshqa serverlar uchun true
-    reconnectInterval: 5000,    // Uzilib qolsa 5 sekunddan so'ng qayta ulanish
-    moveInterval: 15000         // Har 15 sekundda faollik ko'rsatish
+    host: 'Soloraft.aternos.me',
+    port: 27295,
+    username: 'AFK_Bot',
+    offline: true,
+    version: '1.26.30', // Server versiyasi (kerak bo'lsa 1.26.33.2 ga o'zgartirishingiz mumkin)
+    reconnectInterval: 5000,
+    moveInterval: 15000
 };
 
 let botClient = null;
@@ -18,7 +18,7 @@ function createBot() {
     if (isConnecting) return;
     isConnecting = true;
 
-    console.log(`[LOG] Bot ${CONFIG.host}:${CONFIG.port} manziliga ulanmoqda...`);
+    console.log(`[LOG] Bot ${CONFIG.host}:${CONFIG.port} manziliga (${CONFIG.version}) ulanmoqda...`);
 
     if (moveIntervalId) {
         clearInterval(moveIntervalId);
@@ -31,7 +31,7 @@ function createBot() {
             port: CONFIG.port,
             username: CONFIG.username,
             offline: CONFIG.offline,
-            version: "1.20.0" // Server versiyasi
+            version: CONFIG.version
         });
 
         botClient.on('spawn', () => {
@@ -77,15 +77,13 @@ function startAntiAfkMovement() {
         if (!botClient) return;
 
         try {
-            console.log('[ANTIAFK] Bot serverdan haydalmasligi uchun harakat qilmoqda.');
-            // Bu yerda serverdan kick bo'lmaslik uchun qo'shimcha paketlar almashinuvi amalga oshiriladi
+            console.log('[ANTIAFK] Bot serverdan haydalmasligi uchun faollik koʻrsatmoqda.');
         } catch (e) {
             console.log('[ANTIAFK ERROR] Harakat qilish vaqtida xatolik:', e.message);
         }
     }, CONFIG.moveInterval);
 }
 
-// Dastur kutilmaganda to'xtab qolishining oldini olish uchun crash himoyasi
 process.on('uncaughtException', (err) => {
     console.log('[FATAL ERROR] Kutilmagan xatolik:', err.message);
 });
@@ -94,5 +92,5 @@ process.on('unhandledRejection', (reason) => {
     console.log('[FATAL ERROR] Hal qilinmagan xatolik:', reason);
 });
 
-// Botni ishga tushirish
 createBot();
+    
